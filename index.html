@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2E2119">
+<title>Swopcast · Suivi des tâches</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232E2119'/%3E%3Cpath d='M20 34a12 12 0 0 0 24 0M32 46v8M24 54h16' stroke='%23E0AE4F' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Crect x='25' y='10' width='14' height='26' rx='7' fill='%23E0AE4F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Palette tirée des rendus du studio : murs sombres, tasseaux noyer, parquet clair,
+   fauteuils cognac, tapis beige, plantes, lumière chaude 2700-3000 K, teal du plan de régie. */
+:root{
+  --bg:#EFE4D3;--bg-deep:#E4D5BF;--paper:#FAF4E8;--field:#FFFBF2;--line:#DBCBB3;--line-strong:#BCA687;
+  --ink:#3B3029;--ink-strong:#1F1914;--muted:#6B5E52;
+  --wood:#2E2119;--wood-2:#3B2A1F;--cream:#F3E9DB;--on-accent:#FFF8EE;
+  --accent:#A4531F;--accent-dark:#86421A;--accent-text:#86421A;--accent-soft:#F0D9C6;
+  --wine:#8E2B2B;--wine-soft:#F2D8D3;--wine-text:#7A2323;
+  --amber:#E0AE4F;--amber-soft:#F5E1B4;--amber-text:#6A470B;--amber-line:#D9A441;
+  --green:#3F7A47;--green-soft:#DCE8D3;--teal:#35707F;--we:#F4EADA;--toast-action:#F3B58A;--sel-bg:#2E2119;--sel-ink:#F3E9DB;--avatar-bg:#3B2A1F;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 2px rgba(60,40,20,.07),0 6px 20px rgba(60,40,20,.08);
+  --font-title:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-text:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --page-pad:clamp(12px,3vw,28px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1B1613;--bg-deep:#2B231D;--paper:#241E19;--field:#1B1613;--line:#3A3027;--line-strong:#5A4A3B;
+  --ink:#E4D6C2;--ink-strong:#F8F0E2;--muted:#A39482;
+  --wood:#17110D;--wood-2:#241A13;
+  --accent:#B05A25;--accent-dark:#C26A33;--accent-text:#F0A872;--accent-soft:#3A271A;
+  --wine:#B8453F;--wine-soft:#3A1F1C;--wine-text:#F2B1A7;
+  --amber-soft:#3B2E15;--amber-text:#EBC56E;--amber-line:#B88A32;
+  --green:#4F9358;--green-soft:#223022;--teal:#4A93A5;--we:#1F1915;
+  --sel-bg:#F3E9DB;--sel-ink:#2E2119;--avatar-bg:#5A4636;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-text);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-title);color:var(--ink-strong);margin:0;line-height:1.2}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+svg{display:block}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid rgba(224,174,79,.7);outline-offset:2px}
+
+/* Boutons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border:1px solid transparent;border-radius:999px;font:600 14px/1 var(--font-title);letter-spacing:.01em;background:var(--paper);color:var(--ink-strong);transition:background-color .15s,border-color .15s;white-space:nowrap}
+.btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;fill:none}
+.btn--accent{background:var(--accent);color:var(--on-accent)}.btn--accent:hover{background:var(--accent-dark)}
+.btn--ghost{background:transparent;border-color:var(--line-strong)}.btn--ghost:hover{background:var(--bg-deep)}
+.btn--danger{background:transparent;color:var(--wine-text);border-color:rgba(142,43,43,.4)}.btn--danger:hover{background:var(--wine-soft)}
+.btn--small{min-height:32px;padding:0 12px;font-size:13px}
+.icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid var(--line-strong);border-radius:50%;background:var(--paper);color:var(--ink-strong)}
+.icon-btn:hover{background:var(--bg-deep)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.link{border:0;background:none;padding:0;color:var(--accent-text);text-decoration:underline;font-weight:600}
+
+/* En-tête : tasseaux noyer + filet de lumière chaude */
+.topbar{position:sticky;top:0;z-index:20;color:var(--cream);
+  background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.28)),repeating-linear-gradient(90deg,var(--wood-2) 0 7px,var(--wood) 7px 10px);
+  box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--amber) 18%,var(--amber) 82%,transparent);opacity:.85}
+.topbar__inner{display:flex;align-items:center;gap:16px;max-width:1280px;margin:0 auto;padding:12px var(--page-pad) 8px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand__logo{width:32px;height:32px;flex:none;border-radius:50%;background:var(--amber);display:grid;place-items:center;color:var(--wood);box-shadow:0 0 16px rgba(224,174,79,.45)}
+.brand__logo svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round}
+.brand__text{display:flex;flex-direction:column;min-width:0}
+.brand__name{font:800 17px/1.15 var(--font-title);letter-spacing:.14em;text-transform:uppercase}
+.brand__sub{margin-top:2px;font-size:12px;opacity:.8;white-space:nowrap}
+.sync{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:rgba(243,233,219,.85);white-space:nowrap;border:0;background:none;padding:6px}
+.sync__dot{width:8px;height:8px;border-radius:50%;background:#8DC088;flex:none}
+.sync[data-state="bad"] .sync__dot{background:#E58A78}
+.sync[data-state="warn"] .sync__dot{background:#E0B15B}
+.topbar__add{margin-left:12px}
+.tabs{display:flex;gap:4px;max-width:1280px;margin:0 auto;padding:0 var(--page-pad);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{position:relative;padding:10px 14px 12px;border:0;background:none;color:rgba(243,233,219,.72);font:600 14.5px/1 var(--font-title);white-space:nowrap}
+.tab:hover{color:var(--cream)}
+.tab[aria-selected="true"]{color:#fff}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--amber)}
+.tab__count{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:var(--wine);color:#fff;font:700 11px/1 var(--font-title);vertical-align:1px}
+
+/* Page */
+.page{max-width:1280px;margin:0 auto;padding:16px var(--page-pad) 110px}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:12px;min-width:0}
+.toolbar__label{font:600 13px/1 var(--font-title);color:var(--muted);white-space:nowrap}
+.people{display:flex;gap:8px;min-width:0;overflow-x:auto;scrollbar-width:none;padding:2px;margin:-2px}
+.people::-webkit-scrollbar{display:none}
+.person{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px 0 6px;border:1px solid var(--line-strong);border-radius:999px;background:var(--paper);color:var(--ink-strong);font-weight:600;font-size:14px;white-space:nowrap}
+.person--all{padding-left:14px}
+.person:hover{border-color:var(--ink)}
+.person[aria-pressed="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-ink)}
+.person[aria-pressed="true"] .avatar{background:var(--accent);color:var(--on-accent)}
+.avatar{display:inline-grid;place-items:center;width:26px;height:26px;flex:none;border-radius:50%;background:var(--avatar-bg);color:var(--cream);font:700 12px/1 var(--font-title)}
+
+/* Rappels */
+.alerts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+.alerts__who{font-size:13.5px;color:var(--muted);margin-right:2px}
+.alert{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px 0 6px;border:1px solid transparent;border-radius:999px;font-size:14px;font-weight:600;background:var(--paper);color:var(--ink-strong)}
+.alert__num{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:13px;font:700 13px/1 var(--font-title)}
+.alert--late{background:var(--wine-soft);color:var(--wine-text);border-color:rgba(142,43,43,.3)}
+.alert--late .alert__num{background:var(--wine);color:#fff}
+.alert--soon{background:var(--amber-soft);color:var(--amber-text);border-color:rgba(217,164,65,.5)}
+.alert--soon .alert__num{background:var(--amber-text);color:var(--amber-soft)}
+.alert--val{background:var(--paper);color:var(--ink-strong);border-color:var(--line-strong)}
+.alert--val .alert__num{background:var(--avatar-bg);color:var(--cream)}
+.alert:hover{filter:brightness(.97)}
+.alert--calm{padding:8px 14px;min-height:0;cursor:default;border-color:var(--line);color:var(--ink);font-weight:400}
+.alert--calm strong{font-weight:600}
+
+/* Titres de vue */
+.view-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:14px}
+.view-title{font-size:22px;font-weight:700}
+.view-sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.empty{padding:18px;color:var(--muted);text-align:center}
+
+/* Tâches */
+.task-list{list-style:none;margin:0;padding:0}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:4px 10px;padding:10px 14px 10px 8px;border-top:1px solid var(--line)}
+.task:first-child{border-top:0}
+.task.is-late{box-shadow:inset 4px 0 0 var(--wine)}
+.task.is-soon{box-shadow:inset 4px 0 0 var(--amber-line)}
+.task__check{display:grid;place-items:center;width:40px;height:40px;margin:-8px -4px -8px 0;cursor:pointer}
+.checkbox{appearance:none;-webkit-appearance:none;display:inline-grid;place-content:center;width:22px;height:22px;margin:0;flex:none;border:2px solid var(--line-strong);border-radius:6px;background:var(--field);cursor:pointer;transition:background-color .15s,border-color .15s}
+.checkbox::after{content:"";width:11px;height:6px;border:solid #fff;border-width:0 0 2.5px 2.5px;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .15s}
+.checkbox:hover{border-color:var(--ink)}
+.checkbox:checked{background:var(--green);border-color:var(--green)}
+.checkbox:checked::after{transform:translateY(-1px) rotate(-45deg) scale(1)}
+.task.is-late .checkbox:not(:checked){border-color:var(--wine)}
+.task__body{min-width:0;padding-top:1px;cursor:pointer;border-radius:6px}
+.task__title{color:var(--ink-strong);font-weight:600;line-height:1.4}
+.task.is-done .task__title{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(107,94,82,.5);font-weight:400}
+.task__meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:3px;font-size:13px;color:var(--muted)}
+.task__id{font-weight:700;color:var(--ink)}
+.task__rel{font:600 11.5px/1 var(--font-title);padding:3px 6px;border-radius:5px;background:var(--bg-deep);color:var(--ink)}
+.task__note{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0}
+.dot--P{background:var(--teal)}.dot--A{background:var(--accent)}.dot--B{background:var(--green)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font:700 11.5px/1.1 var(--font-title);white-space:nowrap}
+.badge--late{background:var(--wine);color:#fff}
+.badge--soon{background:var(--amber-soft);color:var(--amber-text)}
+.badge--quiet{background:var(--bg-deep);color:var(--ink)}
+.badge--val{background:var(--field);color:var(--ink-strong);box-shadow:inset 0 0 0 1px var(--ink)}
+.badge--prog{background:var(--green);color:#fff}
+.badge--block{background:transparent;color:var(--wine-text);box-shadow:inset 0 0 0 1px rgba(142,43,43,.6)}
+
+/* Groupes */
+.groups{display:grid;gap:14px}
+.group{overflow:hidden}
+.group__title{display:flex;align-items:center;gap:10px;padding:13px 16px;font:700 15px/1.2 var(--font-title);color:var(--ink-strong);list-style:none}
+summary.group__title{cursor:pointer}
+summary.group__title::-webkit-details-marker{display:none}
+.group__count{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 7px;border-radius:11px;background:var(--bg-deep);font:700 12px/1 var(--font-title);color:var(--ink)}
+.group__chev{margin-left:auto;width:18px;height:18px;stroke:var(--muted);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+details[open]>.group__title .group__chev{transform:rotate(180deg)}
+.group .task-list{border-top:1px solid var(--line)}
+.group--late{border-color:rgba(142,43,43,.4)}
+.group--late .group__title{color:var(--wine-text);background:var(--wine-soft)}
+.group--late .group__count{background:var(--wine);color:#fff}
+.group--soon .group__title{color:var(--amber-text);background:var(--amber-soft)}
+.group--soon .group__count{background:var(--amber-text);color:var(--amber-soft)}
+.group__title:focus{outline:none}
+.group__title:focus-visible{outline:3px solid rgba(224,174,79,.7);outline-offset:-3px}
+.progress{height:8px;border-radius:4px;background:var(--bg-deep);overflow:hidden;min-width:90px;flex:1;max-width:260px}
+.progress i{display:block;height:100%;background:var(--green)}
+.group__prog{margin-left:auto;display:flex;align-items:center;gap:10px;font:600 13px var(--font-title);color:var(--muted)}
+.group__prog+.group__chev{margin-left:0}
+.sum{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:14px 16px;margin-bottom:14px}
+.sum b{font:800 26px/1 var(--font-title);color:var(--ink-strong)}
+
+/* Calendrier */
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cal-title{font-size:21px;min-width:170px;text-align:center;text-transform:capitalize}
+.cal-nav-row{display:flex;align-items:center;gap:8px;min-width:0}
+.cal-legend{margin-left:auto;display:flex;gap:14px;font-size:13px;color:var(--muted)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--paper);box-shadow:var(--shadow)}
+.cal__wd{padding:8px 6px;font:700 11px/1 var(--font-title);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;border-bottom:1px solid var(--line)}
+.day{min-height:96px;padding:5px;border-top:1px solid var(--line);border-left:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
+.day:nth-child(7n+8){border-left:0}
+.day.is-we{background:var(--we)}
+.day.is-out{background:var(--bg);color:var(--muted)}
+.day.is-out .day__num{opacity:.55}
+.day.is-sel{box-shadow:inset 0 0 0 2px var(--amber-line)}
+.day__num{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:12px;font:700 12.5px/1 var(--font-title);align-self:flex-start;padding:0 4px}
+.day.is-today .day__num{background:var(--accent);color:var(--on-accent)}
+.day__flag{font:700 10px/1 var(--font-title);color:var(--amber-text);margin-left:auto}
+.day__top{display:flex;align-items:center}
+.chip{display:block;padding:2px 6px;border-radius:5px;font:600 11px/1.3 var(--font-title);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.chip--P{background:var(--teal)}.chip--A{background:var(--accent)}.chip--B{background:var(--green)}
+.chip--done{background:var(--bg-deep);color:var(--muted);text-decoration:line-through}
+.chip__t{font-weight:500}
+.day__more{font-size:11px;color:var(--muted);padding-left:4px}
+.day-panel{margin-top:14px;scroll-margin-top:130px}
+.day-panel h3{padding:13px 16px;font-size:15px;border-bottom:1px solid var(--line);text-transform:capitalize}
+.ms{padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;background:var(--amber-soft);color:var(--amber-text);font-weight:600}
+
+/* Pied de page, FAB */
+.footer{max-width:1280px;margin:-80px auto 0;padding:0 var(--page-pad) 100px;font-size:12.5px;color:var(--muted)}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:30;display:grid;place-items:center;width:60px;height:60px;border:0;border-radius:50%;background:var(--accent);color:var(--on-accent);box-shadow:0 6px 18px rgba(0,0,0,.3),0 0 0 3px rgba(224,174,79,.35)}
+.fab:hover{background:var(--accent-dark)}
+@media (min-width:761px){.fab{display:none}}
+.fab svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;fill:none}
+
+/* Fenêtres */
+.dialog{width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;border:0;border-radius:16px;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.dialog::backdrop{background:rgba(25,17,11,.6)}
+.dialog__form{display:flex;flex-direction:column;max-height:calc(100dvh - 24px)}
+.dialog__head{display:flex;align-items:center;gap:12px;padding:18px 20px 12px}
+.dialog__title{font-size:20px;flex:1}
+.dialog__body{padding:4px 20px 14px;overflow-y:auto;display:grid;gap:14px}
+.dialog__foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px 18px;border-top:1px solid var(--line)}
+.dialog__spacer{flex:1}
+.dialog--small{width:min(480px,calc(100vw - 24px))}
+.field{display:grid;gap:6px;min-width:0}
+.field__label{font:600 13.5px/1.2 var(--font-title);color:var(--ink-strong)}
+.field__opt{font:400 12.5px var(--font-text);color:var(--muted)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.input{width:100%;min-height:44px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--field);color:var(--ink-strong);font-size:16px}
+textarea.input{resize:vertical;min-height:64px;line-height:1.4}
+.input:focus{outline:none;border-color:var(--amber-line);box-shadow:0 0 0 3px rgba(224,174,79,.3)}
+.input[aria-invalid="true"]{border-color:var(--wine);box-shadow:0 0 0 3px rgba(142,43,43,.2)}
+.msg{margin:0;padding:8px 12px;border-radius:var(--radius-sm);font-size:13.5px}
+.msg--error{background:var(--wine-soft);color:var(--wine-text);font-weight:600}
+.msg--warn{background:var(--amber-soft);color:var(--amber-text)}
+.msgs{display:grid;gap:6px}.msgs:empty{display:none}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.steps li{display:flex;align-items:center;gap:10px;padding:4px 0}
+.steps label{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;font-size:14px}
+.steps .done span{color:var(--muted);text-decoration:line-through}
+.steps .x{width:30px;height:30px}
+.step-add{display:flex;gap:8px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.toast{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom));z-index:60;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 110px);padding:11px 12px 11px 18px;border-radius:12px;background:var(--wood);color:var(--cream);box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:14px;border:1px solid rgba(224,174,79,.35)}
+.toast button{border:0;background:none;color:var(--toast-action);font:700 13.5px/1 var(--font-title);padding:6px 8px;border-radius:6px}
+.errbox{padding:12px 14px;border-radius:var(--radius-sm);background:var(--wine-soft);color:var(--wine-text);margin-bottom:14px}
+
+@media (max-width:760px){
+  .topbar__add{display:none}
+  .brand__sub{display:none}
+  .sync__label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .tab{flex:1;padding-left:8px;padding-right:8px}
+  .toolbar{flex-direction:column;align-items:stretch;gap:8px}
+  .people{margin:-2px calc(-1*var(--page-pad));padding:2px var(--page-pad)}
+  .alerts{gap:6px;margin-bottom:14px}
+  .alerts__who{flex-basis:100%;font-size:13px}
+  .alert{min-height:34px;padding-right:12px;gap:6px;font-size:13px}
+  .alert__num{min-width:24px;height:24px;font-size:12px}
+  .task{padding-right:10px}
+  .field-row{grid-template-columns:1fr}
+  .dialog{width:100vw;max-width:100vw;max-height:100dvh;margin:auto 0 0;border-radius:16px 16px 0 0}
+  .dialog__form{max-height:92dvh}
+  .day{min-height:58px;padding:3px}
+  .chip__t{display:none}
+  .chip{font-size:10px;padding:1px 3px}
+  .cal-legend{margin-left:0;width:100%}
+  .cal-nav-row{flex:1 1 100%;justify-content:space-between}
+  .cal-title{min-width:0;flex:1;font-size:18px}
+}
+@media print{
+  .topbar__add,.fab,.sync,.toolbar,.alerts,.footer,.tabs,.dialog{display:none!important}
+  body{background:#fff}.topbar{position:static;box-shadow:none}
+  details:not([open])>*:not(summary){display:block}
+  .group{break-inside:avoid;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <span class="brand__logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></span>
+      <span class="brand__text"><span class="brand__name">Swopcast</span><span class="brand__sub" id="brand-sub">Suivi des tâches</span></span>
+    </div>
+    <button type="button" class="sync" id="sync" data-act="backup" title="Sauvegarde et export"><span class="sync__dot"></span><span class="sync__label" id="sync-label">Enregistré</span></button>
+    <button type="button" class="btn btn--accent topbar__add" data-act="new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle tâche</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Vues">
+    <button type="button" class="tab" role="tab" data-view="todo" id="tab-todo">À faire</button>
+    <button type="button" class="tab" role="tab" data-view="chantiers" id="tab-chantiers">Par chantier</button>
+    <button type="button" class="tab" role="tab" data-view="calendrier" id="tab-calendrier">Calendrier</button>
+  </nav>
+</header>
+
+<main class="page">
+  <section class="toolbar" aria-label="Filtrer par personne"><span class="toolbar__label" id="people-label">Je suis</span><div class="people" id="people" role="group" aria-labelledby="people-label"></div></section>
+  <section class="alerts" id="alerts" aria-live="polite"></section>
+  <section id="main" aria-live="off"></section>
+  <noscript><p class="empty">Cet outil a besoin de JavaScript pour fonctionner.</p></noscript>
+</main>
+<footer class="footer" id="footer"></footer>
+
+<button type="button" class="fab" data-act="new" aria-label="Nouvelle tâche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<dialog class="dialog" id="task-dialog" aria-labelledby="task-title-h">
+  <form class="dialog__form" id="task-form" novalidate>
+    <header class="dialog__head"><h2 class="dialog__title" id="task-title-h">Nouvelle tâche</h2><button type="button" class="icon-btn" data-act="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="dialog__body">
+      <label class="field"><span class="field__label">Tâche</span><input class="input" name="title" type="text" maxlength="160" autocomplete="off" required></label>
+      <div class="field-row">
+        <label class="field"><span class="field__label">Chantier</span><select class="input" name="chantier"></select></label>
+        <label class="field"><span class="field__label">Responsable</span><input class="input" name="owner" type="text" maxlength="40" list="owners" autocomplete="off"></label>
+      </div>
+      <div class="field-row">
+        <label class="field"><span class="field__label">Échéance</span><input class="input" name="due" type="date"></label>
+        <label class="field"><span class="field__label">Statut</span><select class="input" name="status"></select></label>
+      </div>
+      <label class="field"><span class="field__label">Livrable attendu</span><textarea class="input" name="deliverable" rows="2" maxlength="400"></textarea></label>
+      <label class="field"><span class="field__label">Prochaine action <span class="field__opt">ce qui débloque la tâche</span></span><input class="input" name="nextAction" type="text" maxlength="300" autocomplete="off"></label>
+      <div class="field"><span class="field__label">Étapes</span><ul class="steps" id="steps"></ul>
+        <div class="step-add"><input class="input" id="step-new" type="text" maxlength="200" placeholder="Ajouter une étape" autocomplete="off"><button type="button" class="btn btn--ghost" data-act="step-add">Ajouter</button></div></div>
+      <p class="hint" id="deps-hint"></p>
+      <div class="msgs" id="form-msgs" aria-live="polite"></div>
+    </div>
+    <footer class="dialog__foot"><button type="button" class="btn btn--danger" data-act="delete" id="btn-del" hidden>Supprimer</button><span class="dialog__spacer"></span><button type="button" class="btn btn--ghost" data-act="close">Annuler</button><button type="submit" class="btn btn--accent">Enregistrer</button></footer>
+  </form>
+</dialog>
+<datalist id="owners"></datalist>
+
+<dialog class="dialog" id="backup-dialog" aria-labelledby="backup-h">
+  <div class="dialog__form">
+    <header class="dialog__head"><h2 class="dialog__title" id="backup-h">Sauvegarde</h2><button type="button" class="icon-btn" data-act="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="dialog__body" id="backup-body"></div>
+  </div>
+</dialog>
+
+<dialog class="dialog dialog--small" id="choice-dialog" aria-labelledby="choice-h">
+  <div class="dialog__form">
+    <header class="dialog__head"><h2 class="dialog__title" id="choice-h"></h2></header>
+    <div class="dialog__body" id="choice-body"></div>
+    <footer class="dialog__foot" id="choice-foot"></footer>
+  </div>
+</dialog>
+<dialog class="dialog dialog--small" id="code-dialog" aria-labelledby="code-h">
+  <form class="dialog__form" id="code-form" novalidate>
+    <header class="dialog__head"><h2 class="dialog__title" id="code-h">Code d’accès de l’équipe</h2></header>
+    <div class="dialog__body"><p class="hint">Ce site partage les tâches avec toute l’équipe. Saisis le code d’accès communiqué par Amine.</p>
+      <label class="field"><span class="field__label">Code</span><input class="input" name="code" type="password" autocomplete="off" maxlength="100"></label>
+      <div class="msgs" id="code-msgs" aria-live="polite"></div></div>
+    <footer class="dialog__foot"><span class="dialog__spacer"></span><button type="button" class="btn btn--ghost" data-act="close">Plus tard</button><button type="submit" class="btn btn--accent">Se connecter</button></footer>
+  </form>
+</dialog>
+<div id="toasts"></div>
+<input type="file" id="file-in" accept=".json,application/json" hidden>
+
+<script type="application/json" id="initial-state">{"schema": "studio-taches", "schemaVersion": "1.0.0", "appVersion": "2.1.0", "project": {"name": "Swopcast — lancement commercial et digital", "start": "2026-10-12", "deadline": "2026-11-12", "note": "Le 12/11 clôt la préparation commerciale et digitale, pas l’ouverture physique du studio. Le nom Swopcast est proposé : disponibilité INPI, domaine et comptes à vérifier.", "milestones": [{"id": "J1", "date": "2026-10-18", "label": "Marché + positionnement"}, {"id": "J2", "date": "2026-10-23", "label": "Marque + prix"}, {"id": "J3", "date": "2026-11-06", "label": "Site / réservation en test"}, {"id": "J4", "date": "2026-11-12", "label": "Dispositif commercial & digital prêt"}]}, "people": ["Amine", "Hamza", "Dhia"], "meta": {"createdAt": "2026-10-12T20:00:00+02:00", "lastExportAt": null, "updatedAt": "2026-10-15T19:45:00+02:00"}, "tasks": [{"id": "P01", "chantier": "P", "title": "Recenser documents, décisions et informations manquantes", "owner": "Amine", "status": "a-valider", "start": "2026-10-12", "due": "2026-10-12", "priority": "haute", "deliverable": "Inventaire des documents, décisions, hypothèses et questions bloquantes", "nextAction": "Q1 à Q6 répondues le 12/10 : confirmer que le recensement est complet", "dependencies": [], "milestone": null, "subtasks": [{"t": "Inventorier les documents reçus (guide, prompt, PDF de lancement, plans)", "done": false}, {"t": "Lister décisions prises et hypothèses à tester", "done": false}, {"t": "Lister les 6 informations bloquantes", "done": false}, {"t": "Identifier les dépendances externes", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "P02", "chantier": "P", "title": "Créer l’outil de suivi des tâches + JSON", "owner": "Amine", "status": "a-valider", "start": "2026-10-12", "due": "2026-10-13", "priority": "haute", "deliverable": "Outil de suivi des tâches (fichier HTML) + JSON initial", "nextAction": "Ouvrir l’outil, vérifier tâches et dates, puis exporter un premier JSON", "dependencies": ["P01"], "milestone": null, "subtasks": [{"t": "25 tâches datées chargées", "done": false}, {"t": "Tester ajout / modification / case à cocher", "done": false}, {"t": "Faire un premier export JSON et le ranger hors du navigateur (à toi)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "P03", "chantier": "P", "title": "Valider feuille de route, responsables et dépendances externes", "owner": "Amine", "status": "a-valider", "start": "2026-10-13", "due": "2026-10-14", "priority": "haute", "deliverable": "Feuille de route validée, un responsable par tâche, interlocuteurs des dépendances externes", "nextAction": "Valider les responsables par tâche et le périmètre commercial + digital", "dependencies": ["P02"], "milestone": null, "subtasks": [{"t": "Échéances conservées (confirmé le 12/10)", "done": true}, {"t": "Désigner un responsable pour chaque tâche", "done": false}, {"t": "Q1 · Studio à Créteil, 1 place Jean Giraudoux", "done": true}, {"t": "Q2 · Ouverture espérée entre le 1er et le 15 novembre (estimée, non ferme)", "done": true}, {"t": "Q3 · Aucun document existant : ni nom, ni logo, ni charte, ni benchmark", "done": true}, {"t": "Q4 · Aucun outil choisi : tout se construit ensemble", "done": true}, {"t": "Q5 · Budget publicitaire : rien n’est défini", "done": true}, {"t": "Q6 · Associés : Amine (marketing, outils, supports) ; investisseur principal et responsable commercial ; Dhia pour Repère et vocations (audiovisuel, travaux)", "done": true}, {"t": "Confirmer le périmètre : commercial + digital uniquement (hors travaux, financement, achats)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "M01", "chantier": "A", "title": "Benchmark : concurrents, prix, offres, réservations", "owner": "Amine", "status": "en-cours", "start": "2026-10-13", "due": "2026-10-16", "priority": "haute", "deliverable": "Benchmark vérifiable avec liens : concurrents directs/indirects, prix, offres, parcours de réservation, avis", "nextAction": "Relire le document Benchmark & cibles (v1) ; v2 à faire : avis clients, réseaux, test de réservation", "dependencies": ["P01"], "milestone": null, "subtasks": [{"t": "Fixer la zone géographique et la liste de 8 à 12 concurrents (directs : studios podcast à l'heure ; indirects : studios photo/vidéo, coworkings)", "done": false}, {"t": "Relever prix/h, forfaits, durée minimale, options (vidéo, montage)", "done": false}, {"t": "Analyser les parcours de réservation et de paiement", "done": false}, {"t": "Relever avis clients et présence sur les réseaux", "done": false}, {"t": "Synthèse forces/faiblesses et écarts exploitables", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "M02", "chantier": "A", "title": "Valider cible prioritaire, positionnement et proposition de valeur", "owner": "Amine", "status": "a-faire", "start": "2026-10-16", "due": "2026-10-18", "priority": "haute", "deliverable": "Note de décision : cible prioritaire, positionnement, proposition de valeur", "nextAction": "Choisir 1 à 2 cibles prioritaires parmi les rangs 1 et 2 proposés dans le document Benchmark & cibles", "dependencies": ["M01", "C01"], "milestone": "J1", "subtasks": [{"t": "Proposer 2 à 3 cibles prioritaires argumentées", "done": false}, {"t": "Formuler 2 à 3 options de positionnement", "done": false}, {"t": "Rédiger la proposition de valeur en une phrase", "done": false}, {"t": "Valider (registre des décisions)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "M03", "chantier": "A", "title": "Sélectionner le nom et vérifier marque, domaine, comptes", "owner": "Amine", "status": "a-faire", "start": "2026-10-19", "due": "2026-10-20", "priority": "haute", "deliverable": "Nom retenu + fiche de vérification (marque, domaine, comptes sociaux)", "nextAction": "Attendre le positionnement validé (M02)", "dependencies": ["M02"], "milestone": null, "subtasks": [{"t": "Proposer 5 à 8 noms (sens, mémorisation, cohérence avec le positionnement)", "done": false}, {"t": "Vérifier domaines (.fr / .com)", "done": false}, {"t": "Recherche d'antériorité INPI (à faire valider juridiquement)", "done": false}, {"t": "Vérifier les identifiants Instagram / TikTok / LinkedIn / YouTube", "done": false}, {"t": "Décider du sort de « Studio Le Phare » (nom de travail)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M04", "chantier": "A", "title": "Valider la marque et le mini Brand Book", "owner": "Amine", "status": "a-faire", "start": "2026-10-20", "due": "2026-10-23", "priority": "haute", "deliverable": "Mini Brand Book : concept/logo, palette HEX, typographies, baseline, messages, ton de voix", "nextAction": "Attendre le nom (M03)", "dependencies": ["M03"], "milestone": "J2", "subtasks": [{"t": "Explorer 2 à 3 pistes de concept/logo", "done": false}, {"t": "Palette HEX et typographies", "done": false}, {"t": "Baseline, messages clés et ton de voix", "done": false}, {"t": "Assembler le mini Brand Book", "done": false}, {"t": "Validation écrite de la marque", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M05", "chantier": "A", "title": "Valider le cahier des charges du site", "owner": "Amine", "status": "a-faire", "start": "2026-10-23", "due": "2026-10-26", "priority": "haute", "deliverable": "Cahier des charges validé : arborescence, parcours, réservation, paiement, SEO, choix d'outil argumenté", "nextAction": "Préparer le comparatif d'outils pendant que marque et prix se finalisent", "dependencies": ["M04", "C03"], "milestone": null, "subtasks": [{"t": "Arborescence et parcours (découverte → réservation → paiement → confirmation)", "done": false}, {"t": "Comparatif simple de 2 à 3 solutions de réservation / paiement", "done": false}, {"t": "Fonctions : créneaux, durées, options, packs, codes promo, paiement, factures, rappels", "done": false}, {"t": "SEO local et contenus des pages", "done": false}, {"t": "Conformité à faire valider (CGV, mentions légales, données personnelles, cookies)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M06", "chantier": "A", "title": "Finaliser maquettes et textes des pages clés", "owner": "Amine", "status": "a-faire", "start": "2026-10-26", "due": "2026-10-29", "priority": "haute", "deliverable": "Wireframes, maquettes desktop + mobile et textes des pages clés", "nextAction": "Attendre le cahier des charges (M05)", "dependencies": ["M05"], "milestone": null, "subtasks": [{"t": "Wireframes (accueil, offres et tarifs, réservation, contact, FAQ)", "done": false}, {"t": "Rédiger les textes des pages clés", "done": false}, {"t": "Maquettes desktop + mobile", "done": false}, {"t": "Lister les photos/visuels nécessaires (à obtenir des associés)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "M07", "chantier": "A", "title": "Calendrier éditorial 30 jours et briefs de contenus", "owner": "Amine", "status": "a-faire", "start": "2026-10-26", "due": "2026-10-31", "priority": "moyenne", "deliverable": "Calendrier éditorial 30 jours, formats, briefs et plan de production", "nextAction": "Attendre positionnement (M02) et marque (M04)", "dependencies": ["M02", "M04"], "milestone": null, "subtasks": [{"t": "Choisir et justifier les canaux prioritaires (pas de publication partout)", "done": false}, {"t": "Construire le calendrier 30 jours (dates, formats)", "done": false}, {"t": "Rédiger les briefs de contenus", "done": false}, {"t": "Plan de production : qui filme / monte quoi, quand", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M08", "chantier": "A", "title": "Préparer comptes, modèles de posts, teasers, référencement local", "owner": "Amine", "status": "a-faire", "start": "2026-11-02", "due": "2026-11-03", "priority": "moyenne", "deliverable": "Comptes prêts, modèles de posts, teasers, fiche Google Business Profile", "nextAction": "Attendre marque (M04) et calendrier (M07)", "dependencies": ["M04", "M07"], "milestone": null, "subtasks": [{"t": "Créer ou sécuriser les comptes (identifiants vérifiés en M03)", "done": false}, {"t": "Préparer la fiche Google Business Profile et le référencement local", "done": false}, {"t": "Modèles de posts et teasers", "done": false}, {"t": "Bio, liens et appel à l'action", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M09", "chantier": "A", "title": "Obtenir la version test du site et de la réservation", "owner": "Amine", "status": "a-faire", "start": "2026-10-29", "due": "2026-11-06", "priority": "haute", "deliverable": "Version test du site + parcours de réservation fonctionnel en mode test", "nextAction": "Attendre maquettes et textes (M06) et grille de prix (C03)", "dependencies": ["M06", "C03"], "milestone": "J3", "subtasks": [{"t": "Choisir et configurer l'outil retenu en M05", "done": false}, {"t": "Paramétrer offres, tarifs et créneaux de test", "done": false}, {"t": "Réaliser une réservation test complète", "done": false}, {"t": "Lister les anomalies", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M10", "chantier": "A", "title": "Tester agenda, fiches clients, notifications, automatisations", "owner": "Amine", "status": "a-faire", "start": "2026-11-06", "due": "2026-11-09", "priority": "moyenne", "deliverable": "Rapport de tests : agenda, fiches clients, notifications, automatisations", "nextAction": "Attendre la version test (M09)", "dependencies": ["M09"], "milestone": null, "subtasks": [{"t": "Agenda : blocage de créneaux, doubles réservations", "done": false}, {"t": "Fiches clients", "done": false}, {"t": "Notifications et rappels", "done": false}, {"t": "Automatisations (Make / n8n si retenus)", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M11", "chantier": "A", "title": "Vérifier mobile, paiement, e-mails, mentions légales, parcours", "owner": "Amine", "status": "a-faire", "start": "2026-11-09", "due": "2026-11-10", "priority": "haute", "deliverable": "Checklist de contrôle bout en bout complétée", "nextAction": "Attendre les tests (M10)", "dependencies": ["M10"], "milestone": null, "subtasks": [{"t": "Contrôle mobile (iOS / Android)", "done": false}, {"t": "Paiement en mode test", "done": false}, {"t": "E-mails de confirmation et de rappel", "done": false}, {"t": "Mentions légales, CGV, cookies (à faire valider)", "done": false}, {"t": "Parcours complet de bout en bout", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "M12", "chantier": "A", "title": "Livrer le site prêt à publier et activer la communication", "owner": "Amine", "status": "a-faire", "start": "2026-11-10", "due": "2026-11-12", "priority": "haute", "deliverable": "Site prêt à publier + checklist de publication + communication activée (si accès)", "nextAction": "Attendre les contrôles (M11) et les accès au domaine et aux comptes (à obtenir des associés)", "dependencies": ["M11", "M08"], "milestone": "J4", "subtasks": [{"t": "Checklist de publication signée", "done": false}, {"t": "Domaine, HTTPS et accès prêts (dépendance externe)", "done": false}, {"t": "Activer comptes et premières publications (si accès)", "done": false}, {"t": "Plan d'action post-publication", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C01", "chantier": "B", "title": "Lister cibles, prestations et données d'exploitation", "owner": "Amine", "status": "en-cours", "start": "2026-10-13", "due": "2026-10-15", "priority": "haute", "deliverable": "Liste des cibles, des prestations possibles et des données d'exploitation disponibles", "nextAction": "Relire les cibles du document Benchmark & cibles ; obtenir des associés capacités et horaires", "dependencies": ["P01"], "milestone": null, "subtasks": [{"t": "Lister les cibles B2B et B2C", "done": false}, {"t": "Lister les prestations possibles (location horaire, packs, vidéo, options)", "done": false}, {"t": "Collecter les données d'exploitation auprès des associés", "done": false}, {"t": "Identifier ce qui manque", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C02", "chantier": "B", "title": "Business plan d'exploitation (3 scénarios)", "owner": "Amine", "status": "en-cours", "start": "2026-10-16", "due": "2026-10-20", "priority": "haute", "deliverable": "Business plan d'exploitation : CA, coûts, occupation, marge, seuil de rentabilité, 3 scénarios modifiables", "nextAction": "Calcul d’illustration fait (document Benchmark & cibles) ; il manque les charges réelles et le mode d’exploitation", "dependencies": ["C01", "M01"], "milestone": null, "subtasks": [{"t": "Paramétrer hypothèses (prix, heures, jours d'ouverture, coûts)", "done": false}, {"t": "Construire les scénarios prudent / central / ambitieux", "done": false}, {"t": "Calculer CA, marge, taux de remplissage, seuil de rentabilité", "done": false}, {"t": "Marquer « à confirmer » toute charge inconnue", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C03", "chantier": "B", "title": "Valider grille de prix, packs, offres B2B, marges", "owner": "Amine", "status": "a-faire", "start": "2026-10-20", "due": "2026-10-23", "priority": "haute", "deliverable": "Grille tarifaire, packs, offres B2B/associations, hypothèses de marge validées", "nextAction": "Attendre le business plan (C02) et le positionnement (M02)", "dependencies": ["C02", "M02"], "milestone": "J2", "subtasks": [{"t": "Grille de prix horaire comparée au benchmark (90 € HT/h = hypothèse)", "done": false}, {"t": "Packs d'heures et offres B2B / associations", "done": false}, {"t": "Offres de préouverture et conditions (prévente seulement si date fiable et conditions validées)", "done": false}, {"t": "Valider les hypothèses de marge", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C04", "chantier": "B", "title": "Structurer le CRM", "owner": "Amine", "status": "a-faire", "start": "2026-10-23", "due": "2026-10-26", "priority": "moyenne", "deliverable": "CRM structuré : pipeline, champs, statuts, règles de relance, indicateurs", "nextAction": "Cadrer pipeline, champs et statuts (le CRM sera un outil à part)", "dependencies": ["C01"], "milestone": null, "subtasks": [{"t": "Définir pipeline et statuts", "done": false}, {"t": "Champs et segmentation B2B / B2C", "done": false}, {"t": "Règles de relance", "done": false}, {"t": "Indicateurs liés aux KPI", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C05", "chantier": "B", "title": "Qualifier 30 à 50 prospects", "owner": "Amine", "status": "a-faire", "start": "2026-10-26", "due": "2026-10-29", "priority": "haute", "deliverable": "Fichier de 30 à 50 prospects qualifiés, saisi dans le CRM", "nextAction": "Attendre la cible prioritaire (M02) et le CRM (C04)", "dependencies": ["M02", "C04"], "milestone": null, "subtasks": [{"t": "Fixer les critères de qualification", "done": false}, {"t": "Rechercher 30 à 50 prospects (agences, coachs, écoles, créateurs, associations, entreprises locales)", "done": false}, {"t": "Qualifier : besoin, contact, canal", "done": false}, {"t": "Saisir dans le CRM", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "C06", "chantier": "B", "title": "Scripts e-mail / DM / téléphone et séquences de relance", "owner": "Amine", "status": "a-faire", "start": "2026-10-27", "due": "2026-10-30", "priority": "moyenne", "deliverable": "Scripts e-mail, DM, téléphone et séquences de relance", "nextAction": "Attendre nom (M03) et prix (C03)", "dependencies": ["M03", "C03"], "milestone": null, "subtasks": [{"t": "Script e-mail", "done": false}, {"t": "Script DM", "done": false}, {"t": "Script téléphone", "done": false}, {"t": "Séquence de relance (3 touches)", "done": false}, {"t": "Réponses aux objections", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "C07", "chantier": "B", "title": "Démarrer la prospection personnalisée", "owner": "Amine", "status": "a-faire", "start": "2026-11-02", "due": "2026-11-02", "priority": "haute", "deliverable": "Prospection démarrée, chaque échange consigné dans le CRM", "nextAction": "Attendre fichier prospects (C05) et scripts (C06)", "dependencies": ["C05", "C06"], "milestone": null, "subtasks": [{"t": "Envoyer la première vague de messages personnalisés", "done": false}, {"t": "Consigner chaque échange dans le CRM", "done": false}, {"t": "Planifier les relances", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "C08", "chantier": "B", "title": "Contacts partenaires et liste d'attente / landing page", "owner": "Amine", "status": "a-faire", "start": "2026-11-03", "due": "2026-11-05", "priority": "moyenne", "deliverable": "Contacts partenaires lancés + liste d'attente / landing page en ligne", "nextAction": "Attendre prix (C03), marque (M04) et scripts (C06)", "dependencies": ["C03", "M04", "C06"], "milestone": null, "subtasks": [{"t": "Landing page / liste d'attente (outil simple)", "done": false}, {"t": "Contacter coworkings, écoles, agences, associations, créateurs", "done": false}, {"t": "Offre partenaires / parrainage", "done": false}, {"t": "Encaissement avant ouverture uniquement si date fiable et conditions de vente validées", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:30:00+02:00"}, {"id": "C09", "chantier": "B", "title": "Évaluer les premiers résultats et ajuster", "owner": "Amine", "status": "a-faire", "start": "2026-11-06", "due": "2026-11-09", "priority": "moyenne", "deliverable": "Bilan des premiers résultats et ajustements (canaux, messages, conversion)", "nextAction": "Attendre les premiers échanges (C07, C08)", "dependencies": ["C07", "C08"], "milestone": null, "subtasks": [{"t": "Calculer les KPI (contacts, réponses, RDV, devis, pré-réservations)", "done": false}, {"t": "Analyser canaux et messages", "done": false}, {"t": "Ajuster scripts et ciblage", "done": false}, {"t": "Décider d'une deuxième vague", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}, {"id": "C10", "chantier": "B", "title": "Valider le tableau de KPI et le plan d'acquisition 90 jours", "owner": "Amine", "status": "a-faire", "start": "2026-11-09", "due": "2026-11-12", "priority": "haute", "deliverable": "Tableau de KPI validé + plan d'acquisition 90 jours (canaux classés coût/impact)", "nextAction": "Attendre le bilan (C09)", "dependencies": ["C09"], "milestone": "J4", "subtasks": [{"t": "Valider le tableau de KPI et les objectifs", "done": false}, {"t": "Plan d'acquisition 90 jours (canaux classés par coût et impact)", "done": false}, {"t": "Fidélisation : parrainage, abonnements, avis", "done": false}, {"t": "Bilan du mois", "done": false}], "validatedAt": null, "updatedAt": "2026-10-12T20:00:00+02:00"}], "deleted": {}}</script>
+<script>
+"use strict";
+/* ============================================================
+   Studio podcast — suivi des tâches (outil simple, fichier unique)
+   Données : localStorage + export / import JSON.
+   ============================================================ */
+const APP_VERSION='2.1.0', SCHEMA='studio-taches', SCHEMA_VERSION='1.0.0';
+const KEY='studioTaches.v1', PREV=KEY+'.prev', UIKEY='studioTaches.ui.v1', CODEKEY=KEY+'.code';
+const STATUS={'a-faire':'À faire','en-cours':'En cours','a-valider':'À valider','bloque':'Bloquée','termine':'Terminée'};
+const CH={P:'Pilotage',A:'Marketing & digital',B:'Business & commercial'};
+const VIEWS=['todo','chantiers','calendrier'];
+
+/* ---------- Utilitaires ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p2=n=>String(n).padStart(2,'0');
+const pd=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(y,m-1,d)};
+const iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const isDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&iso(pd(s))===s;
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
+const diffD=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
+const WD=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+const MON=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const MONL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const fmt=s=>isDate(s)?WD[pd(s).getDay()]+' '+pd(s).getDate()+' '+MON[pd(s).getMonth()]:'Sans date';
+const fmtS=s=>isDate(s)?pd(s).getDate()+' '+MON[pd(s).getMonth()]:'';
+const fmtFR=s=>isDate(s)?p2(pd(s).getDate())+'/'+p2(pd(s).getMonth()+1)+'/'+pd(s).getFullYear():'—';
+const nowIso=()=>new Date().toISOString();
+const ts=v=>{const n=Date.parse(String(v||''));return isNaN(n)?0:n};
+function today(){try{const q=new URLSearchParams(location.search).get('today');if(q&&isDate(q))return q}catch(e){}return iso(new Date())}
+const mondayOf=s=>{const d=pd(s);return addD(s,-((d.getDay()+6)%7))};
+const initial=s=>(String(s||'?').trim()[0]||'?').toUpperCase();
+const same=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
+
+/* ---------- Données ---------- */
+let state=null,storageOK=true,loadNote='',firstRun=false;
+const SYNC={on:false,exists:false,probe:false,busy:false,dirty:false,status:'off',code:'',timer:null,last:0,stale:false};
+const API='/api/sync';
+const POLL=(()=>{try{const q=Number(new URLSearchParams(location.search).get('syncpoll'));if(q>=300)return q}catch(e){}return 30000})();
+const ui={view:'todo',person:'',groups:{},calMonth:'',calDay:'',draft:null,lastSnap:null};
+const isDone=t=>t.status==='termine';
+
+function validate(o){
+  const e=[];
+  if(!o||typeof o!=='object'||Array.isArray(o))return ['Le fichier ne contient pas un objet JSON.'];
+  if(o.schema!==SCHEMA)e.push('Ce fichier n’est pas une sauvegarde de cet outil (schéma « '+SCHEMA+' » attendu).');
+  if(typeof o.schemaVersion!=='string'||o.schemaVersion.split('.')[0]!=='1')e.push('Version de schéma non prise en charge : '+o.schemaVersion+'.');
+  if(!Array.isArray(o.tasks))e.push('« tasks » doit être un tableau.');
+  if(!o.project||typeof o.project!=='object')e.push('« project » manquant.');
+  if(e.length)return e;
+  const ids=new Set();
+  o.tasks.forEach((t,i)=>{
+    if(!t||typeof t!=='object'){e.push('tasks['+i+'] invalide.');return}
+    const w=t.id||('tasks['+i+']');
+    if(typeof t.id!=='string'||!t.id)e.push(w+' : identifiant manquant.');else if(ids.has(t.id))e.push('Identifiant en doublon : '+t.id+'.');ids.add(t.id);
+    if(typeof t.title!=='string'||!t.title.trim())e.push(w+' : titre manquant.');
+    if(!CH[t.chantier])e.push(w+' : chantier invalide.');
+    if(!STATUS[t.status])e.push(w+' : statut invalide « '+t.status+' ».');
+    if(t.due&&!isDate(t.due))e.push(w+' : échéance invalide.');
+    if(t.subtasks!==undefined&&!Array.isArray(t.subtasks))e.push(w+' : subtasks doit être un tableau.');
+    if(t.dependencies!==undefined&&!Array.isArray(t.dependencies))e.push(w+' : dependencies doit être un tableau.');
+  });
+  return e;
+}
+function normalize(o){
+  o.people=Array.isArray(o.people)?o.people.filter(x=>typeof x==='string'&&x.trim()):[];
+  o.meta=(o.meta&&typeof o.meta==='object')?o.meta:{};
+  const dl={};if(o.deleted&&typeof o.deleted==='object'&&!Array.isArray(o.deleted))Object.entries(o.deleted).forEach(([k,v])=>{if(typeof v==='string'&&Date.parse(v))dl[k]=v});o.deleted=dl;
+  o.project.milestones=Array.isArray(o.project.milestones)?o.project.milestones:[];
+  o.tasks.forEach(t=>{
+    t.owner=String(t.owner||'');t.due=t.due||'';t.deliverable=String(t.deliverable||'');t.nextAction=String(t.nextAction||'');
+    t.dependencies=Array.isArray(t.dependencies)?t.dependencies:[];
+    t.subtasks=(Array.isArray(t.subtasks)?t.subtasks:[]).filter(s=>s&&typeof s.t==='string').map(s=>({t:s.t,done:!!s.done}));
+    t.validatedAt=t.validatedAt||null;t.updatedAt=t.updatedAt||nowIso();
+  });
+  return o;
+}
+function loadState(){
+  let raw=null;
+  try{raw=localStorage.getItem(KEY)}catch(e){storageOK=false}
+  if(raw){
+    try{const o=JSON.parse(raw),errs=validate(o);
+      if(!errs.length)return normalize(o);
+      loadNote='Les données enregistrées dans ce navigateur étaient invalides ; une copie est gardée sous « '+KEY+'.corrupt ». L’outil est reparti du modèle.';
+    }catch(e){loadNote='Les données enregistrées dans ce navigateur étaient illisibles ; une copie est gardée sous « '+KEY+'.corrupt ».'}
+    try{localStorage.setItem(KEY+'.corrupt',raw)}catch(e){}
+  }
+  firstRun=true;
+  return normalize(JSON.parse($('#initial-state').textContent));
+}
+function persist(localOnly){
+  state.meta.updatedAt=nowIso();
+  try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true}catch(e){storageOK=false}
+  renderSync();
+  if(!localOnly&&SYNC.on)schedulePush(1200);
+}
+function saveUi(){try{localStorage.setItem(UIKEY,JSON.stringify({view:ui.view,person:ui.person}))}catch(e){}}
+function loadUi(){try{const u=JSON.parse(localStorage.getItem(UIKEY)||'{}');if(u&&typeof u==='object'){ui.person=typeof u.person==='string'?u.person:''}}catch(e){}}
+function snapshotPrev(){try{localStorage.setItem(PREV,JSON.stringify({at:nowIso(),state}));return true}catch(e){return false}}
+const byId=id=>state.tasks.find(t=>t.id===id);
+const touch=t=>{t.updatedAt=nowIso();return t};
+function uniqNames(list){const s=[];list.forEach(n=>{n=String(n||'').trim();if(n&&!s.some(x=>same(x,n)))s.push(n)});return s}
+function people(){return uniqNames(state.people.concat(state.tasks.map(t=>t.owner)))}
+function activeOwners(){const o=uniqNames(state.tasks.map(t=>t.owner));return ui.person&&!o.some(x=>same(x,ui.person))?o.concat([ui.person]):o}
+
+
+/* ---------- Calculs ---------- */
+function visibleTasks(){return state.tasks.filter(t=>!ui.person||same(t.owner,ui.person))}
+function dueState(t){
+  if(isDone(t)||!t.due)return 'none';
+  const d=diffD(today(),t.due);
+  return d<0?'late':d<=3?'soon':'later';
+}
+const sortT=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||state.tasks.indexOf(a)-state.tasks.indexOf(b);
+function counts(list){
+  const open=list.filter(t=>!isDone(t));
+  return {late:open.filter(t=>dueState(t)==='late').length,soon:open.filter(t=>dueState(t)==='soon').length,val:open.filter(t=>t.status==='a-valider').length,open:open.length,done:list.length-open.length,tot:list.length};
+}
+
+/* ---------- Rendu : composants ---------- */
+function relBadge(t){
+  if(isDone(t))return t.validatedAt?'<span class="badge badge--quiet">Terminée le '+esc(fmtFR(String(t.validatedAt).slice(0,10)))+'</span>':'';
+  if(!t.due)return '<span class="badge badge--quiet">Sans date</span>';
+  const d=diffD(today(),t.due);
+  if(d<0)return '<span class="badge badge--late">En retard · '+(-d)+' jour'+(-d>1?'s':'')+'</span>';
+  if(d===0)return '<span class="badge badge--soon">Aujourd’hui</span>';
+  if(d===1)return '<span class="badge badge--soon">Demain</span>';
+  if(d<=3)return '<span class="badge badge--soon">Dans '+d+' jours</span>';
+  return '<span class="task__rel">J-'+d+'</span>';
+}
+function statusBadge(t){
+  return t.status==='en-cours'?'<span class="badge badge--prog">En cours</span>':t.status==='a-valider'?'<span class="badge badge--val">À valider</span>':t.status==='bloque'?'<span class="badge badge--block">Bloquée</span>':'';
+}
+function taskRow(t,opt){
+  opt=opt||{};
+  const ds=dueState(t),done=isDone(t);
+  const sub=t.subtasks.length?'<span>'+t.subtasks.filter(s=>s.done).length+'/'+t.subtasks.length+' étapes</span>':'';
+  const we=!done&&t.due&&[0,6].includes(pd(t.due).getDay())?'<span class="badge badge--quiet">week-end</span>':'';
+  const note=!done&&t.nextAction?'<p class="task__note">'+esc(t.nextAction)+'</p>':'';
+  return '<li class="task'+(ds==='late'?' is-late':ds==='soon'?' is-soon':'')+(done?' is-done':'')+'" data-id="'+esc(t.id)+'">'+
+   '<label class="task__check"><input type="checkbox" class="checkbox" data-toggle="'+esc(t.id)+'"'+(done?' checked':'')+' aria-label="Terminée : '+esc(t.title)+'"></label>'+
+   '<div class="task__body" role="button" tabindex="0" data-act="open" data-id="'+esc(t.id)+'">'+
+     '<div class="task__title">'+esc(t.title)+'</div>'+
+     '<div class="task__meta"><span class="task__id"><i class="dot dot--'+esc(t.chantier)+'"></i>'+esc(t.id)+'</span>'+(opt.noDate?'':'<span>'+esc(fmt(t.due))+'</span>')+relBadge(t)+statusBadge(t)+we+sub+(opt.showCh?'<span>'+esc(CH[t.chantier])+'</span>':'')+'</div>'+note+
+   '</div>'+
+   '<span class="avatar" title="'+esc(t.owner||'Sans responsable')+'">'+esc(initial(t.owner))+'</span></li>';
+}
+const CHEV='<svg class="group__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+function group(id,title,cls,list,opt){
+  const isOpen=ui.groups[id]!==undefined?ui.groups[id]:!(opt&&opt.closed);
+  return '<details class="card group '+cls+'" id="g-'+id+'" data-gid="'+id+'"'+(isOpen?' open':'')+'><summary class="group__title">'+esc(title)+' <span class="group__count">'+list.length+'</span>'+(opt&&opt.prog||'')+CHEV+'</summary><ul class="task-list">'+list.map(t=>taskRow(t,opt)).join('')+'</ul></details>';
+}
+
+/* ---------- Rendu : vues ---------- */
+function vTodo(){
+  const list=visibleTasks(),open=list.filter(t=>!isDone(t)).sort(sortT),done=list.filter(isDone).sort((a,b)=>String(b.validatedAt||'').localeCompare(String(a.validatedAt||'')));
+  const late=open.filter(t=>dueState(t)==='late'),soon=open.filter(t=>dueState(t)==='soon');
+  const later=open.filter(t=>dueState(t)==='later'),nodate=open.filter(t=>dueState(t)==='none');
+  const weeks=new Map();later.forEach(t=>{const w=mondayOf(t.due);if(!weeks.has(w))weeks.set(w,[]);weeks.get(w).push(t)});
+  let h='<div class="view-head"><div><h2 class="view-title">À faire</h2><p class="view-sub">'+(ui.person?'Tâches de '+esc(ui.person):'Toutes les tâches de l’équipe')+' · '+open.length+' restante'+(open.length>1?'s':'')+(done.length?' · '+done.length+' terminée'+(done.length>1?'s':''):'')+'</p></div></div><div class="groups">';
+  if(late.length)h+=group('late','En retard','group--late',late);
+  if(soon.length)h+=group('soon','Dans les 3 prochains jours','group--soon',soon);
+  [...weeks.keys()].sort().forEach(w=>{const wk=addD(w,6);h+=group('w'+w,'Semaine du '+fmtS(w)+' au '+fmtS(wk),'',weeks.get(w))});
+  if(nodate.length)h+=group('nodate','Sans date','',nodate);
+  if(!open.length)h+='<div class="card empty">'+(ui.person?'Aucune tâche à faire pour '+esc(ui.person)+'.':'Rien à faire pour le moment.')+'</div>';
+  if(done.length)h+=group('done','Terminées','',done,{closed:true});
+  return h+'</div>';
+}
+function vChantiers(){
+  const all=visibleTasks(),c=counts(all);
+  let h='<div class="view-head"><div><h2 class="view-title">Par chantier</h2><p class="view-sub">'+(ui.person?'Tâches de '+esc(ui.person):'Toutes les tâches')+'</p></div></div>'+
+   '<div class="card sum"><div><b>'+c.done+'</b> / '+c.tot+' terminées</div><div class="progress" role="img" aria-label="'+c.done+' sur '+c.tot+' terminées"><i style="width:'+(c.tot?Math.round(100*c.done/c.tot):0)+'%"></i></div><div class="view-sub" style="margin:0">'+(c.val?c.val+' à valider · ':'')+c.late+' en retard</div></div><div class="groups">';
+  Object.keys(CH).forEach(k=>{
+    const l=all.filter(t=>t.chantier===k).sort(sortT);if(!l.length)return;
+    const d=l.filter(isDone).length;
+    h+=group('c'+k,CH[k],'',l,{showCh:false,prog:'<span class="group__prog"><span>'+d+'/'+l.length+'</span><span class="progress"><i style="width:'+Math.round(100*d/l.length)+'%"></i></span></span>'});
+  });
+  return h+'</div>';
+}
+function vCalendrier(){
+  const t0=today(),p=state.project;
+  if(!ui.calMonth)ui.calMonth=(t0>=p.start&&t0<=p.deadline?t0:p.start||t0).slice(0,7);
+  const [y,m]=ui.calMonth.split('-').map(Number),first=iso(new Date(y,m-1,1));
+  const start=mondayOf(first),list=visibleTasks();
+  const byDay={};list.forEach(t=>{if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t)}});
+  const ms={};(state.project.milestones||[]).forEach(x=>{if(isDate(x.date))(ms[x.date]=ms[x.date]||[]).push(x)});
+  if(!ui.calDay||ui.calDay.slice(0,7)!==ui.calMonth)ui.calDay=(t0.slice(0,7)===ui.calMonth?t0:first);
+  let cells='';
+  ['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'].forEach(w=>cells+='<div class="cal__wd">'+w+'</div>');
+  for(let i=0;i<42;i++){
+    const d=addD(start,i),dt=pd(d),inM=d.slice(0,7)===ui.calMonth,ts=(byDay[d]||[]).sort(sortT);
+    if(i>=35&&!inM&&dt.getDay()===1)break;
+    cells+='<div class="day'+(inM?'':' is-out')+([0,6].includes(dt.getDay())?' is-we':'')+(d===t0?' is-today':'')+(d===ui.calDay?' is-sel':'')+'" data-act="day" data-date="'+d+'"><div class="day__top"><span class="day__num">'+dt.getDate()+'</span>'+(ms[d]?'<span class="day__flag" title="'+esc(ms[d].map(x=>x.id+' '+x.label).join(' · '))+'">⚑ '+esc(ms[d].map(x=>x.id).join(' '))+'</span>':'')+'</div>'+
+      ts.slice(0,3).map(t=>'<span class="chip chip--'+esc(t.chantier)+(isDone(t)?' chip--done':'')+'" data-act="open" data-id="'+esc(t.id)+'" title="'+esc(t.id+' · '+t.title)+'">'+esc(t.id)+'<span class="chip__t"> '+esc(t.title)+'</span></span>').join('')+(ts.length>3?'<span class="day__more">+'+(ts.length-3)+'</span>':'')+'</div>';
+  }
+  const sel=(byDay[ui.calDay]||[]).sort(sortT),sm=ms[ui.calDay]||[];
+  return '<div class="cal-head"><div class="cal-nav-row"><button type="button" class="icon-btn" data-act="cal-prev" aria-label="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2 class="cal-title">'+MONL[m-1]+' '+y+'</h2><button type="button" class="icon-btn" data-act="cal-next" aria-label="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" class="btn btn--ghost btn--small" data-act="cal-today">Aujourd’hui</button></div>'+
+    '<div class="cal-legend"><span><i class="dot dot--P"></i>Pilotage</span><span><i class="dot dot--A"></i>Marketing</span><span><i class="dot dot--B"></i>Business</span></div></div>'+
+    '<div class="cal">'+cells+'</div>'+
+    '<div class="card day-panel" id="day-panel"><h3>'+esc(fmt(ui.calDay))+' '+pd(ui.calDay).getFullYear()+'</h3>'+sm.map(x=>'<div class="ms">⚑ Jalon '+esc(x.id)+' · '+esc(x.label)+'</div>').join('')+(sel.length?'<ul class="task-list">'+sel.map(t=>taskRow(t,{noDate:true,showCh:true})).join('')+'</ul>':'<div class="empty">Aucune tâche à cette date.</div>')+'</div>';
+}
+
+/* ---------- Rendu : cadre ---------- */
+function renderPeople(){
+  const ps=activeOwners();
+  $('#people').innerHTML='<button type="button" class="person person--all" data-act="who" data-v="" aria-pressed="'+(!ui.person)+'">Toute l’équipe</button>'+ps.map(n=>'<button type="button" class="person" data-act="who" data-v="'+esc(n)+'" aria-pressed="'+same(ui.person,n)+'"><span class="avatar">'+esc(initial(n))+'</span>'+esc(n)+'</button>').join('');
+  $('#owners').innerHTML=people().map(n=>'<option value="'+esc(n)+'">').join('');
+}
+function renderAlerts(){
+  const c=counts(visibleTasks()),who=ui.person?'Rappels de '+esc(ui.person):'Rappels de l’équipe';
+  let h='<span class="alerts__who">'+who+' :</span>';
+  if(c.late)h+='<button type="button" class="alert alert--late" data-act="jump" data-v="g-late"><span class="alert__num">'+c.late+'</span>en retard</button>';
+  if(c.soon)h+='<button type="button" class="alert alert--soon" data-act="jump" data-v="g-soon"><span class="alert__num">'+c.soon+'</span>d’ici 3 jours</button>';
+  if(c.val)h+='<button type="button" class="alert alert--val" data-act="valider"><span class="alert__num">'+c.val+'</span>à valider</button>';
+  if(!c.late&&!c.soon&&!c.val)h+='<span class="alert alert--calm"><strong>Rien d’urgent</strong> pour les 3 prochains jours.</span>';
+  const le=state.meta.lastExportAt;
+  if(!le)h+='<button type="button" class="alert alert--soon" data-act="backup"><span class="alert__num">!</span>Pas encore de sauvegarde JSON</button>';
+  else if(diffD(String(le).slice(0,10),today())>=7)h+='<button type="button" class="alert alert--soon" data-act="backup"><span class="alert__num">!</span>Dernier export il y a '+diffD(String(le).slice(0,10),today())+' jours</button>';
+  $('#alerts').innerHTML=h;
+}
+function renderSync(){
+  const el=$('#sync'),lb=$('#sync-label');if(!el)return;
+  const st=SYNC.status;
+  if(!storageOK){el.dataset.state='bad';lb.textContent='Stockage local indisponible : exporte ton JSON'}
+  else if(st==='ok'){el.dataset.state='ok';lb.textContent='Synchronisé avec l’équipe'}
+  else if(st==='offline'){el.dataset.state='warn';lb.textContent='Hors ligne : gardé dans ce navigateur'}
+  else if(st==='auth'){el.dataset.state='warn';lb.textContent='Code d’accès requis'}
+  else{el.dataset.state='ok';lb.textContent='Enregistré dans ce navigateur'}
+  el.dataset.act=st==='auth'?'sync-code':'backup';
+}
+function renderTabs(){
+  const c=counts(visibleTasks()),n=c.late;
+  $$('.tab').forEach(b=>{const on=b.dataset.view===ui.view;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;
+    if(b.dataset.view==='todo')b.innerHTML='À faire'+(n?'<span class="tab__count">'+n+'</span>':'')});
+}
+function renderFooter(){
+  const le=state.meta.lastExportAt;
+  $('#footer').innerHTML='Données enregistrées dans ce navigateur uniquement. '+(le?'Dernier export JSON : '+esc(fmtFR(String(le).slice(0,10)))+'. ':'Aucun export JSON pour l’instant. ')+'<button type="button" class="link" data-act="backup">Sauvegarde &amp; export</button> · v'+APP_VERSION;
+}
+function showFatal(err){
+  const m=$('#main');if(!m)return;
+  m.innerHTML='<div class="errbox" role="alert"><b>Erreur d’affichage.</b> Tes données ne sont pas perdues.<br><code>'+esc(err&&err.message||err)+'</code><pre style="white-space:pre-wrap;font-size:11px;max-height:180px;overflow:auto">'+esc(err&&err.stack||'')+'</pre><button type="button" class="btn btn--ghost" data-act="backup">Ouvrir la sauvegarde</button></div>';
+}
+function render(){
+  const v=location.hash.replace(/^#\/?/,'');ui.view=VIEWS.includes(v)?v:'todo';
+  const y=window.scrollY;
+  try{
+    $('#brand-sub').textContent='Suivi des tâches · '+fmtS(state.project.start)+' – '+fmtS(state.project.deadline)+' '+pd(state.project.deadline).getFullYear();
+    renderPeople();renderAlerts();renderTabs();renderFooter();renderSync();
+    $('#main').innerHTML=(loadNote?'<div class="errbox">'+esc(loadNote)+'</div>':'')+(!storageOK?'<div class="errbox"><b>Stockage local indisponible</b> (navigation privée ou fichier bloqué) : les modifications ne seront pas conservées. Exporte régulièrement ton JSON.</div>':'')+
+      (ui.view==='chantiers'?vChantiers():ui.view==='calendrier'?vCalendrier():vTodo());
+    document.title=({todo:'À faire',chantiers:'Par chantier',calendrier:'Calendrier'})[ui.view]+' · Swopcast';
+  }catch(err){console.error(err);showFatal(err)}
+  window.scrollTo(0,y);
+}
+
+/* ---------- Actions sur les tâches ---------- */
+function toast(msg,action,fn){
+  const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');
+  t.innerHTML='<span>'+esc(msg)+'</span>'+(action?'<button type="button">'+esc(action)+'</button>':'');
+  if(action)t.querySelector('button').addEventListener('click',()=>{fn();t.remove()});
+  $('#toasts').appendChild(t);setTimeout(()=>t.remove(),action?7000:3500);
+}
+function setStatus(t,s){
+  t.status=s;
+  if(s==='termine'){t.validatedAt=nowIso()}else{t.validatedAt=null}
+  touch(t);
+}
+function toggleTask(id,checked){
+  const t=byId(id);if(!t)return;
+  const before={status:t.status,validatedAt:t.validatedAt,updatedAt:t.updatedAt};
+  setStatus(t,checked?'termine':'a-faire');persist();render();
+  toast(checked?'Tâche terminée : '+t.id:'Tâche rouverte : '+t.id,'Annuler',()=>{Object.assign(t,before);touch(t);persist();render()});
+}
+function nextId(){
+  const used=new Set(state.tasks.map(t=>t.id).concat(Object.keys(state.deleted||{})));
+  if(SYNC.on){let id;do{id='N'+Math.random().toString(36).slice(2,5).toUpperCase()}while(used.has(id));return id}
+  let n=1;while(used.has('N'+p2(n)))n++;return 'N'+p2(n)}
+function openTask(id){
+  const t=id?byId(id):null,f=$('#task-form');
+  ui.draft={id:t?t.id:null,subtasks:t?t.subtasks.map(s=>({...s})):[]};
+  $('#task-title-h').textContent=t?t.id+' · Modifier la tâche':'Nouvelle tâche';
+  f.chantier.innerHTML=Object.entries(CH).map(([k,v])=>'<option value="'+k+'">'+esc(v)+'</option>').join('');
+  f.status.innerHTML=Object.entries(STATUS).map(([k,v])=>'<option value="'+k+'">'+esc(v)+'</option>').join('');
+  f.title.value=t?t.title:'';f.chantier.value=t?t.chantier:'A';f.owner.value=t?t.owner:(ui.person||'');
+  f.due.value=t?t.due:'';f.status.value=t?t.status:'a-faire';f.deliverable.value=t?t.deliverable:'';f.nextAction.value=t?t.nextAction:'';
+  $('#step-new').value='';$('#form-msgs').innerHTML='';
+  $$('[aria-invalid]',f).forEach(x=>x.removeAttribute('aria-invalid'));
+  $('#btn-del').hidden=!t;
+  const deps=t?t.dependencies.map(d=>{const x=byId(d);return x?esc(d)+' ('+esc(STATUS[x.status].toLowerCase())+')':null}).filter(Boolean):[];
+  $('#deps-hint').innerHTML=deps.length?'À faire après : '+deps.join(' · '):'';
+  renderSteps();
+  $('#task-dialog').showModal();
+  if(!t)f.title.focus();
+}
+function renderSteps(){
+  $('#steps').innerHTML=ui.draft.subtasks.map((s,i)=>'<li class="'+(s.done?'done':'')+'"><label><input type="checkbox" class="checkbox" data-step="'+i+'"'+(s.done?' checked':'')+'><span>'+esc(s.t)+'</span></label><button type="button" class="icon-btn x" data-act="step-del" data-i="'+i+'" aria-label="Retirer l’étape"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></li>').join('');
+}
+function addStep(){const i=$('#step-new'),v=i.value.trim();if(!v)return;ui.draft.subtasks.push({t:v,done:false});i.value='';renderSteps();i.focus()}
+function submitTask(e){
+  e.preventDefault();
+  const f=$('#task-form'),msgs=[];
+  $$('[aria-invalid]',f).forEach(x=>x.removeAttribute('aria-invalid'));
+  const title=f.title.value.trim();
+  if(!title){msgs.push('Donne un titre à la tâche.');f.title.setAttribute('aria-invalid','true')}
+  if(f.due.value&&!isDate(f.due.value)){msgs.push('Date d’échéance invalide.');f.due.setAttribute('aria-invalid','true')}
+  if(msgs.length){$('#form-msgs').innerHTML=msgs.map(m=>'<p class="msg msg--error">'+esc(m)+'</p>').join('');return}
+  const pending=$('#step-new').value.trim();if(pending)ui.draft.subtasks.push({t:pending,done:false});
+  let t=ui.draft.id?byId(ui.draft.id):null;
+  if(!t){t={id:nextId(),chantier:'A',title:'',owner:'',status:'a-faire',due:'',deliverable:'',nextAction:'',dependencies:[],subtasks:[],validatedAt:null};state.tasks.push(t)}
+  const wasDone=isDone(t);
+  Object.assign(t,{title,chantier:f.chantier.value,owner:f.owner.value.trim(),due:f.due.value,deliverable:f.deliverable.value.trim(),nextAction:f.nextAction.value.trim(),subtasks:ui.draft.subtasks});
+  if(f.status.value!==t.status||(!wasDone&&f.status.value==='termine')){setStatus(t,f.status.value)}
+  touch(t);persist();$('#task-dialog').close();render();toast('Tâche enregistrée : '+t.id);
+}
+async function deleteTask(){
+  const t=ui.draft&&ui.draft.id?byId(ui.draft.id):null;if(!t)return;
+  const dependents=state.tasks.filter(x=>x.dependencies.includes(t.id)).map(x=>x.id);
+  const r=await choice('Supprimer cette tâche ?','<p><b>'+esc(t.id)+' · '+esc(t.title)+'</b></p><p class="hint">Cette action est définitive'+(dependents.length?'. Les tâches '+esc(dependents.join(', '))+' ne dépendront plus d’elle':'')+'. Pense à exporter un JSON avant si besoin.</p>',[{v:'no',l:'Annuler',cls:'btn--ghost'},{v:'yes',l:'Supprimer',cls:'btn--danger'}]);
+  if(r!=='yes')return;
+  state.tasks=state.tasks.filter(x=>x.id!==t.id);state.deleted[t.id]=nowIso();state.tasks.forEach(x=>{if(x.dependencies.includes(t.id)){x.dependencies=x.dependencies.filter(d=>d!==t.id);touch(x)}});
+  persist();$('#task-dialog').close();render();toast('Tâche supprimée : '+t.id);
+}
+
+/* ---------- Fenêtre de choix ---------- */
+let choiceRes=null;
+function choice(title,html,buttons){
+  return new Promise(res=>{
+    const d=$('#choice-dialog');
+    $('#choice-h').textContent=title;$('#choice-body').innerHTML=html;
+    $('#choice-foot').innerHTML='<span class="dialog__spacer"></span>'+buttons.map(b=>'<button type="button" class="btn '+(b.cls||'btn--ghost')+'" data-choice="'+esc(b.v)+'">'+esc(b.l)+'</button>').join('');
+    choiceRes=res;d.showModal();
+  });
+}
+function endChoice(v){const r=choiceRes;choiceRes=null;if($('#choice-dialog').open)$('#choice-dialog').close();if(r)r(v)}
+
+/* ---------- Sauvegarde / import / export ---------- */
+function stamp(){const d=new Date();return iso(d)+'_'+p2(d.getHours())+p2(d.getMinutes())}
+function exportObj(){return Object.assign({},state,{exportedAt:nowIso(),appVersion:APP_VERSION})}
+function download(name,text){const b=new Blob([text],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)}
+function exportJSON(){
+  state.meta.lastExportAt=nowIso();persist();
+  download('STUDIO_Taches_'+stamp()+'.json',JSON.stringify(exportObj(),null,2));
+  toast('Export JSON téléchargé. Range-le hors du navigateur (cloud, clé USB).');render();if($('#backup-dialog').open)openBackup();
+}
+async function copyJSON(){
+  const txt=JSON.stringify(exportObj(),null,2);
+  try{await navigator.clipboard.writeText(txt);state.meta.lastExportAt=nowIso();persist();toast('JSON copié dans le presse-papiers. Colle-le dans un fichier .json.');render();return}catch(e){}
+  const ta=$('#json-box');if(ta){ta.hidden=false;ta.value=txt;ta.focus();ta.select();toast('Copie automatique impossible : sélectionne et copie le texte.')}
+}
+function openBackup(){
+  const le=state.meta.lastExportAt;let prev=null;try{prev=JSON.parse(localStorage.getItem(PREV)||'null')}catch(e){}
+  $('#backup-body').innerHTML=
+   '<p class="hint">Tes tâches sont enregistrées <b>dans ce navigateur seulement</b> : ce n’est ni un cloud, ni une synchronisation entre appareils. Exporte régulièrement un fichier JSON et range-le ailleurs.</p>'+
+   '<p>'+(le?'Dernier export : <b>'+esc(fmtFR(String(le).slice(0,10)))+'</b>':'<b>Aucun export pour l’instant.</b>')+'</p>'+
+   '<div class="btnrow"><button type="button" class="btn btn--accent" data-act="export">Exporter le JSON</button><button type="button" class="btn btn--ghost" data-act="copy">Copier le JSON</button><button type="button" class="btn btn--ghost" data-act="import">Importer un fichier…</button></div>'+
+   '<textarea class="input" id="json-box" rows="6" hidden readonly aria-label="Contenu JSON"></textarea>'+
+   '<details><summary class="field__label" style="cursor:pointer">Coller un JSON à importer</summary><div class="field" style="margin-top:8px"><textarea class="input" id="json-paste" rows="5" placeholder="Colle ici le contenu d’un fichier .json"></textarea><div class="btnrow"><button type="button" class="btn btn--ghost btn--small" data-act="import-text">Importer ce texte</button></div></div></details>'+
+   '<div id="import-msgs" class="msgs"></div>'+
+   (SYNC.on?'<p class="hint"><b>Synchronisation d’équipe active</b> : les tâches sont partagées avec les personnes qui ont le code.'+(SYNC.last?' Dernière synchro à '+esc(new Date(SYNC.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))+'.':'')+' <button type="button" class="link" data-act="sync-off">Désactiver sur cet appareil</button></p>':'')+
+   '<hr style="border:0;border-top:1px solid var(--line);width:100%;margin:2px 0">'+
+   (prev&&prev.state?'<div class="btnrow"><button type="button" class="btn btn--ghost btn--small" data-act="restore-prev">Restaurer la version d’avant le dernier import / la dernière réinitialisation ('+esc(fmtFR(String(prev.at).slice(0,10)))+')</button></div>':'')+
+   '<div class="btnrow"><button type="button" class="btn btn--danger btn--small" data-act="reset">Réinitialiser (repartir du modèle)</button></div>';
+  if(!$('#backup-dialog').open)$('#backup-dialog').showModal();
+}
+function mergeImport(o){
+  let add=0,upd=0,keep=0;
+  o.tasks.forEach(n=>{const i=state.tasks.findIndex(t=>t.id===n.id);
+    if(i<0){if(ts(state.deleted[n.id])>=ts(n.updatedAt)&&state.deleted[n.id]){keep++;return}delete state.deleted[n.id];state.tasks.push(n);add++}
+    else if(ts(n.updatedAt)>ts(state.tasks[i].updatedAt)){state.tasks[i]=n;upd++}else keep++});
+  (o.people||[]).forEach(p=>{if(!state.people.some(x=>same(x,p)))state.people.push(p)});
+  return {add,upd,keep};
+}
+async function handleImport(text){
+  const box=$('#import-msgs');if(box)box.innerHTML='';
+  let o;
+  try{o=JSON.parse(text)}catch(e){if(box)box.innerHTML='<p class="msg msg--error">Fichier illisible : ce n’est pas un JSON valide. Rien n’a été modifié.</p>';return}
+  const errs=validate(o);
+  if(errs.length){if(box)box.innerHTML='<div class="msg msg--error"><b>Import refusé, aucune donnée modifiée.</b><ul style="margin:6px 0 0;padding-left:18px">'+errs.slice(0,8).map(x=>'<li>'+esc(x)+'</li>').join('')+(errs.length>8?'<li>… et '+(errs.length-8)+' autres</li>':'')+'</ul></div>';return}
+  normalize(o);
+  const r=await choice('Importer ce fichier',
+    '<p>'+o.tasks.length+' tâche(s) dans le fichier'+(o.exportedAt?' (exporté le '+esc(fmtFR(String(o.exportedAt).slice(0,10)))+')':'')+'. Tu en as '+state.tasks.length+' ici.</p><p class="hint"><b>Fusionner</b> : ajoute les tâches nouvelles, met à jour celles modifiées plus récemment dans le fichier, ne supprime rien.<br><b>Remplacer</b> : le fichier remplace tout'+(SYNC.on?', <b>y compris pour toute l’équipe</b>':'')+'. Une copie de l’état actuel est gardée avant.</p>',
+    [{v:'no',l:'Annuler',cls:'btn--ghost'},{v:'replace',l:'Remplacer tout',cls:'btn--danger'},{v:'merge',l:'Fusionner',cls:'btn--accent'}]);
+  if(r!=='merge'&&r!=='replace')return;
+  snapshotPrev();
+  if(r==='replace'){const prev=state.tasks;state=o;claimAll(prev);toast('Import terminé : '+o.tasks.length+' tâche(s).')}
+  else{const s=mergeImport(o);toast('Fusion : '+s.add+' ajoutée(s), '+s.upd+' mise(s) à jour, '+s.keep+' conservée(s).')}
+  persist();render();openBackup();
+}
+async function resetAll(){
+  const r=await choice('Réinitialiser ?','<p>'+(SYNC.on?'<b>Attention : la synchronisation est active, cela remplacera aussi les tâches de toute l’équipe.</b> ':'')+'Toutes tes modifications seront remplacées par le modèle de départ. Une copie de l’état actuel est gardée dans le navigateur (restaurable), mais <b>exporte un JSON avant</b> si tu y tiens.</p>',[{v:'no',l:'Annuler',cls:'btn--ghost'},{v:'yes',l:'Réinitialiser',cls:'btn--danger'}]);
+  if(r!=='yes')return;
+  snapshotPrev();{const prev=state.tasks;state=normalize(JSON.parse($('#initial-state').textContent));claimAll(prev)}ui.person='';saveUi();persist();render();openBackup();toast('Réinitialisé depuis le modèle.');
+}
+function restorePrev(){
+  try{const p=JSON.parse(localStorage.getItem(PREV)||'null');
+    if(!p||validate(p.state).length)throw new Error('copie invalide');
+    const cur=state;state=normalize(p.state);claimAll(cur.tasks);try{localStorage.setItem(PREV,JSON.stringify({at:nowIso(),state:cur}))}catch(e){}
+    persist();render();openBackup();toast('Version précédente restaurée.');
+  }catch(e){toast('Restauration impossible : '+e.message)}
+}
+
+/* ---------- Synchronisation d’équipe (facultative : demande le service /api/sync) ---------- */
+function claimAll(prevTasks){
+  const now=nowIso(),ids=new Set(state.tasks.map(t=>t.id));
+  prevTasks.forEach(t=>{if(!ids.has(t.id))state.deleted[t.id]=now});
+  state.tasks.forEach(t=>{t.updatedAt=now;delete state.deleted[t.id]});
+}
+function mergeStates(L,R){
+  const del=Object.assign({},L.deleted||{});
+  Object.entries(R.deleted||{}).forEach(([id,t])=>{if(ts(t)>ts(del[id]))del[id]=t});
+  const map=new Map();
+  (L.tasks||[]).forEach(t=>map.set(t.id,t));
+  (R.tasks||[]).forEach(t=>{const c=map.get(t.id);if(!c||ts(t.updatedAt)>ts(c.updatedAt))map.set(t.id,t)});
+  const tasks=[];map.forEach((t,id)=>{if(del[id]&&ts(del[id])>=ts(t.updatedAt))return;tasks.push(t)});
+  const people=uniqNames((L.people||[]).concat(R.people||[]));
+  return {tasks,deleted:del,people};
+}
+function setSync(st){SYNC.status=st;renderSync()}
+function schedulePush(ms){clearTimeout(SYNC.timer);SYNC.timer=setTimeout(syncNow,ms)}
+function applyRemote(d){
+  if(!d||!Array.isArray(d.tasks))throw new Error('réponse invalide');
+  const m=mergeStates({tasks:state.tasks,deleted:state.deleted,people:state.people},{tasks:d.tasks,deleted:d.deleted||{},people:d.people||[]});
+  if(validate({schema:SCHEMA,schemaVersion:SCHEMA_VERSION,project:state.project,tasks:m.tasks}).length)throw new Error('données distantes invalides');
+  const before=JSON.stringify([state.tasks,state.deleted]);
+  state.tasks=m.tasks;state.deleted=m.deleted;state.people=m.people;normalize(state);
+  if(JSON.stringify([state.tasks,state.deleted])!==before){
+    persist(true);
+    if(document.querySelector('dialog[open]'))SYNC.stale=true;else render();
+  }
+}
+async function syncNow(){
+  if(!SYNC.on&&!SYNC.probe)return;
+  if(SYNC.busy){SYNC.dirty=true;return}
+  SYNC.busy=true;SYNC.dirty=false;
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json','x-studio-code':SYNC.code},cache:'no-store',
+      body:JSON.stringify({tasks:state.tasks,deleted:state.deleted,people:state.people})});
+    if(r.status===401){
+      const hadCode=!!SYNC.code;SYNC.exists=true;SYNC.on=false;SYNC.probe=false;SYNC.code='';
+      try{localStorage.removeItem(CODEKEY)}catch(e){}
+      setSync('auth');askCode(hadCode?'Code incorrect. Réessaie.':'');return;
+    }
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    SYNC.probe=false;SYNC.exists=true;SYNC.on=true;
+    applyRemote(d);SYNC.last=Date.now();setSync('ok');
+  }catch(e){
+    if(SYNC.probe){SYNC.probe=false;SYNC.on=false;setSync('off')}else setSync('offline');
+  }finally{SYNC.busy=false;if(SYNC.dirty&&SYNC.on)schedulePush(300)}
+}
+function askCode(msg){
+  const d=$('#code-dialog');$('#code-msgs').innerHTML=msg?'<p class="msg msg--error">'+esc(msg)+'</p>':'';
+  $('#code-form').code.value='';if(!d.open)d.showModal();
+}
+function submitCode(e){
+  e.preventDefault();
+  const v=$('#code-form').code.value.trim();if(!v){$('#code-msgs').innerHTML='<p class="msg msg--error">Saisis le code.</p>';return}
+  SYNC.code=v;try{localStorage.setItem(CODEKEY,v)}catch(x){}
+  $('#code-dialog').close();SYNC.probe=true;syncNow();
+}
+function syncOff(){
+  SYNC.on=false;SYNC.probe=false;SYNC.code='';try{localStorage.removeItem(CODEKEY)}catch(e){}
+  setSync('off');openBackup();toast('Synchronisation désactivée sur cet appareil.');
+}
+function initSync(){
+  if(!/^https?:$/.test(location.protocol))return;
+  try{SYNC.code=localStorage.getItem(CODEKEY)||''}catch(e){}
+  SYNC.probe=true;syncNow(); // sonde : si le service existe et exige un code, on le demande
+  setInterval(()=>{if(SYNC.on&&!document.hidden)syncNow()},POLL);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SYNC.on)syncNow()});
+  window.addEventListener('online',()=>{if(SYNC.exists&&SYNC.code){SYNC.on=true;syncNow()}});
+  document.addEventListener('close',()=>{if(SYNC.stale&&!document.querySelector('dialog[open]')){SYNC.stale=false;render()}},true);
+}
+
+/* ---------- Événements ---------- */
+document.addEventListener('click',e=>{
+  const ch=e.target.closest('[data-choice]');if(ch){endChoice(ch.dataset.choice);return}
+  const tab=e.target.closest('.tab');if(tab){location.hash='#/'+tab.dataset.view;return}
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,id=el.dataset.id;
+  switch(a){
+    case 'new':openTask(null);break;
+    case 'open':e.stopPropagation();openTask(id);break;
+    case 'close':{const d=el.closest('dialog');if(d)d.close();break}
+    case 'step-add':addStep();break;
+    case 'step-del':ui.draft.subtasks.splice(Number(el.dataset.i),1);renderSteps();break;
+    case 'delete':deleteTask();break;
+    case 'who':ui.person=el.dataset.v;saveUi();ui.calDay='';render();break;
+    case 'jump':{const g=document.getElementById(el.dataset.v);if(g){g.open=true;ui.groups[g.dataset.gid]=true;g.scrollIntoView({behavior:'smooth',block:'start'})}break}
+    case 'valider':{ui.person=ui.person;location.hash='#/todo';const t=visibleTasks().find(x=>x.status==='a-valider');if(t)openTask(t.id);break}
+    case 'backup':openBackup();break;
+    case 'sync-code':askCode('');break;
+    case 'sync-off':syncOff();break;
+    case 'export':exportJSON();break;
+    case 'copy':copyJSON();break;
+    case 'import':$('#file-in').click();break;
+    case 'import-text':handleImport(($('#json-paste')||{}).value||'');break;
+    case 'reset':resetAll();break;
+    case 'restore-prev':restorePrev();break;
+    case 'cal-prev':case 'cal-next':{const [y,m]=ui.calMonth.split('-').map(Number),d=new Date(y,m-1+(a==='cal-next'?1:-1),1);ui.calMonth=iso(d).slice(0,7);ui.calDay='';render();break}
+    case 'cal-today':ui.calMonth=today().slice(0,7);ui.calDay=today();render();break;
+    case 'day':ui.calDay=el.dataset.date;if(ui.calDay.slice(0,7)!==ui.calMonth)ui.calMonth=ui.calDay.slice(0,7);render();{const p=document.getElementById('day-panel');if(p&&window.innerWidth<=760)p.scrollIntoView({behavior:'smooth',block:'nearest'})}break;
+  }
+});
+document.addEventListener('change',e=>{
+  const tg=e.target.closest('[data-toggle]');if(tg){toggleTask(tg.dataset.toggle,tg.checked);return}
+  const st=e.target.closest('[data-step]');if(st&&ui.draft){const i=Number(st.dataset.step);if(ui.draft.subtasks[i]){ui.draft.subtasks[i].done=st.checked;renderSteps()}return}
+  if(e.target.id==='file-in'){const f=e.target.files[0];e.target.value='';if(!f)return;
+    if(f.size>5e6){toast('Fichier trop volumineux.');return}
+    const r=new FileReader();r.onload=()=>handleImport(String(r.result));r.onerror=()=>toast('Lecture du fichier impossible.');r.readAsText(f)}
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='step-new'&&e.key==='Enter'){e.preventDefault();addStep();return}
+  const b=e.target.closest&&e.target.closest('.task__body');if(b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openTask(b.dataset.id)}
+});
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.gid)ui.groups[d.dataset.gid]=d.open},true);
+$('#task-form').addEventListener('submit',submitTask);
+$('#code-form').addEventListener('submit',submitCode);
+$('#choice-dialog').addEventListener('close',()=>{if(choiceRes)endChoice(null)});
+window.addEventListener('hashchange',render);
+window.addEventListener('error',e=>{try{if(!$('#main').innerHTML.trim())showFatal(e.error||e.message)}catch(x){}});
+
+/* ---------- Démarrage ---------- */
+state=loadState();loadUi();
+if(firstRun)persist();
+render();
+initSync();
+setInterval(()=>{if(!document.querySelector('dialog[open]'))render()},300000);
+window.__studio={get state(){return state},validate,render,today,SYNC,syncNow,mergeStates};
+</script>
+</body>
+</html>
